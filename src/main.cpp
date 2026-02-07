@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+const std::string resp_200 = "HTTP/1.1 200 OK\r\n\r\n";
+
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
   std::cout << std::unitbuf;
@@ -51,8 +53,10 @@ int main(int argc, char **argv) {
   
   std::cout << "Waiting for a client to connect...\n";
   
-  accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
+  int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
   std::cout << "Client connected\n";
+
+  send(client_fd, resp_200.c_str(), resp_200.size(), 0);
   
   close(server_fd);
 
