@@ -1,6 +1,6 @@
+#include "parser.hpp"
 #include <iostream>
 #include <cstdlib>
-#include <string>
 #include <cstring>
 #include <unistd.h>
 #include <sys/types.h>
@@ -9,6 +9,7 @@
 #include <netdb.h>
 
 const std::string resp_200 = "HTTP/1.1 200 OK\r\n\r\n";
+const std::string resp_404 = "HTTP/1.1 404 BAD REQUEST\r\n\r\n";
 
 int main(int argc, char **argv) {
   // Flush after every std::cout / std::cerr
@@ -56,8 +57,25 @@ int main(int argc, char **argv) {
   int client_fd = accept(server_fd, (struct sockaddr *) &client_addr, (socklen_t *) &client_addr_len);
   std::cout << "Client connected\n";
 
-  send(client_fd, resp_200.c_str(), resp_200.size(), 0);
+  std::string request;
+  char buf[4096];
+  while(request.find("\r\n\r\n") == std::string::npos){
+    ssize_t request_size = read(client_fd, buf, 4096);
+    if(request_size <= 0) break;
+
+    request.append(buf, request_size);
+  }
+
+  std::cout << request << std::endl;
+
+  std::vector<std::string> request_line = rl_parser(request);
+
+  if(request_line[1] != "/"){
+    send(client_fd, resp_404.c_str(), resp_404.size(), 0);    
+  } else
+    send(client_fd, resp_200.c_str(), resp_200.size(), 0);
   
+  close(client_fd);
   close(server_fd);
 
   return 0;
