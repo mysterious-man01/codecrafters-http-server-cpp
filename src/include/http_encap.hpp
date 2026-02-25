@@ -6,7 +6,9 @@
 enum class Resp_Type{
     _200,
     _201,
-    _404
+    _403,
+    _404,
+    _500
 };
 
 class HTTP_Encap{

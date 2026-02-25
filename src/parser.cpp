@@ -84,7 +84,7 @@ std::string body_parser(const std::string& raw_request){
 
     auto [ptr, ec] = std::from_chars(
         header.data(),
-        header.data() + header.size() - 2,
+        header.data() + header.size(),
         body_size
     );
 

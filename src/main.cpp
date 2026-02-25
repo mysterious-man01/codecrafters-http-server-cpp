@@ -168,13 +168,40 @@ void handle_client(int client_fd){
         std::cerr << "POST: Unable to create file\n";
         answer.set_msg_type(Resp_Type::_404);
       }
-      else if(write(file_fd, body_content.data(), body_content.size()) < 0){
-        close(file_fd);
-        std::cerr << "POST: Unable to wite on file\n";
-        answer.set_msg_type(Resp_Type::_404);
+
+      ssize_t wtotal = 0;
+      ssize_t to_write = body_content.size();
+      const char* data = body_content.data();
+
+      while(wtotal < to_write){
+        ssize_t written = write(file_fd,
+                                data + wtotal,
+                                to_write - wtotal);
+        
+        if(written < 0){
+          if(errno == EINTR)
+            continue;
+          
+          perror("write");
+          close(file_fd);
+          std::cerr << "POST: Unable to wite on file\n";
+          if(errno == EACCES)
+            answer.set_msg_type(Resp_Type::_403);
+          else if(errno == ENOENT)
+            answer.set_msg_type(Resp_Type::_404);
+          else
+            answer.set_msg_type(Resp_Type::_500);
+
+          break;
+        }
+
+        wtotal += written;
       }
-      else
+
+      if(wtotal == to_write){
+        close(file_fd);
         answer.set_msg_type(Resp_Type::_201);
+      }
       
       send_answer(client_fd, answer);
     }
@@ -201,7 +228,7 @@ void handle_client(int client_fd){
     for(const auto& h : headers){
       std::string lower = to_lower(h);
       if(lower.find("user-agent:") != std::string::npos)
-        content = h.substr(h.find(": ") + 1, h.size() - 2);
+        content = h.substr(h.find(": ") + 2, h.size() - 2);
     }
 
     if(!content.empty()){
@@ -229,7 +256,8 @@ void handle_client(int client_fd){
     send_answer(client_fd, answer);
   }
   
-  close(client_fd);
+  if(end_conn)
+    close(client_fd);
 }
 
 bool unlock_fd(int fd){

@@ -5,8 +5,10 @@ const std::string HTTP_VER = "HTTP/1.1 ";
 std::string msg(Resp_Type t){
     switch(t){
         case Resp_Type::_200: return "200 OK\r\n";
-        case Resp_Type::_201: return "201 CREATED\r\n";
-        case Resp_Type::_404: return "404 BAD REQUEST\r\n";
+        case Resp_Type::_201: return "201 Created\r\n";
+        case Resp_Type::_404: return "404 Not Found\r\n";
+        case Resp_Type::_403: return "403 Forbidden\r\n";
+        case Resp_Type::_500: return "500 Internal Server Error\r\n";
         default: return "UNKNOW\r\n";
     }
 }
