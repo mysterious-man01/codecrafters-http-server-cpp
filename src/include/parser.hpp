@@ -1,8 +1,11 @@
 #pragma once
 #include <string>
 #include <vector>
-using namespace std;
 
-vector<string> rl_parser(const string& raw_request);
+std::string to_lower(std::string str);
 
-vector<string> headers_parser(const string& raw_request);
+std::vector<std::string> rl_parser(const std::string& raw_request);
+
+std::vector<std::string> headers_parser(const std::string& raw_request);
+
+std::string body_parser(const std::string& raw_request);
